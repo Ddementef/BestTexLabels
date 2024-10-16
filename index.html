@@ -1,0 +1,223 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Печать наклеек</title>
+    <link rel="icon" href="https://besttexmsk.ru/favicon.ico" type="image/x-icon">
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #ffffff;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+        }
+
+        form {
+            background-color: #f9f9f9;
+            padding: 20px;
+            border-radius: 20px;
+            box-shadow: 0px 0px 40px rgba(0, 0, 0, 0.5);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            width: 100%;
+            max-width: 500px;
+            padding-left: 15px; /* Отступ слева внутри формы */
+            padding-right: 30px; /* Отступ справа внутри формы */
+        }
+
+        .logo {
+            margin-bottom: 20px;
+            text-align: center;
+        }
+
+        .form-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            column-gap: 25px; /* Увеличил горизонтальные зазоры между столбцами */
+            row-gap: 15px; /* Вертикальные зазоры между строками */
+            width: 100%;
+        }
+
+        label {
+            font-size: 18px;
+            margin-bottom: 5px;
+            display: block;
+        }
+
+        input[type="text"],
+        input[type="number"] {
+            width: 100%; /* Поля ввода по ширине */
+            padding: 8px; /* Отступы внутри полей */
+            margin-bottom: 10px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            font-size: 16px;
+        }
+
+        button {
+            background-color: #4caf50;
+            color: white;
+            padding: 12px 20px;
+            border: none;
+            border-radius: 10px; /* Более закругленные углы кнопки */
+            font-size: 18px;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+            display: block;
+            width: 500px; /* Делаем кнопку длинной */
+            margin: 15px 0px 15px 15px;
+        }
+
+        button:hover {
+            background-color: #45a049;
+        }
+
+        .sticker {
+            width: 10cm;
+            height: 7cm;
+            margin: 0;
+            padding: 0;
+            text-align: center;
+            font-family: "Times New Roman", Times, serif;
+            font-style: italic;
+            font-weight: bold;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            flex-direction: column;
+            page-break-after: avoid;
+        }
+
+        .line-35 {
+            font-size: 35px;
+        }
+
+        #printArea {
+            display: none;
+        }
+
+        @media print {
+            #printArea {
+                display: block;
+            }
+
+            body * {
+                visibility: hidden;
+            }
+
+            #printArea, #printArea * {
+                visibility: visible;
+            }
+
+            #printArea {
+                position: absolute;
+                left: 0;
+                top: 0;
+                width: 100%;
+                height: 100%;
+            }
+
+            @page {
+                margin: 0;
+                size: 10cm 7cm;
+            }
+        }
+    </style>
+</head>
+<body>
+
+<form id="stickerForm">
+    <div class="logo">
+        <img src="https://besttexmsk.ru/wp-content/webp-express/webp-images/uploads/2022/12/logotype.jpg.webp" alt="Логотип" width="200">
+    </div>
+
+    <div class="form-grid">
+        <div>
+            <label for="name">Название:</label>
+            <input type="text" id="name" name="name" required>
+        </div>
+
+        <div>
+            <label for="city">Город:</label>
+            <input type="text" id="city" name="city" required>
+        </div>
+
+        <div>
+            <label for="phone">Телефон:</label>
+            <input type="text" id="phone" name="phone" required>
+        </div>
+
+        <div>
+            <label for="company">Транспортная компания:</label>
+            <input type="text" id="company" name="company" required>
+        </div>
+
+        <div>
+            <label for="inn">ИНН:</label>
+            <input type="text" id="inn" name="inn" required>
+        </div>
+
+        <div>
+            <label for="quantity">Количество наклеек:</label>
+            <input type="number" id="quantity" name="quantity" min="1" required>
+        </div>
+    </div>
+
+    <button type="button" onclick="generateStickers()">Печать</button>
+</form>
+
+<div id="printArea"></div>
+
+<script>
+    function generateStickers() {
+        const name = document.getElementById("name").value;
+        const phone = document.getElementById("phone").value;
+        const inn = document.getElementById("inn").value;
+        const city = document.getElementById("city").value;
+        const company = document.getElementById("company").value;
+        const quantity = parseInt(document.getElementById("quantity").value);
+
+        if (!quantity || quantity <= 0) {
+            alert("Пожалуйста, корректно укажите количество наклеек.");
+            return;
+        }
+
+        const stickersContainer = document.getElementById("printArea");
+        stickersContainer.innerHTML = '';
+
+        for (let i = 1; i <= quantity; i++) {
+            const sticker = document.createElement("div");
+            sticker.classList.add("sticker");
+
+            sticker.innerHTML = `
+                <div class="line-35">${name}</div>
+                <div class="line-35">тел. ${phone}</div>
+                <div class="line-35">ИНН ${inn}</div>
+                <div class="line-35">г. ${city}</div>
+                <div class="line-35">${company}</div>
+                <div class="line-35">${i}/${quantity}</div>
+            `;
+
+            stickersContainer.appendChild(sticker);
+
+            // Добавляем разрыв страницы только если это не последняя наклейка
+            if (i < quantity && quantity > 1) {
+                const pageBreak = document.createElement("div");
+                pageBreak.style.pageBreakAfter = "always";
+                stickersContainer.appendChild(pageBreak);
+            }
+        }
+
+        window.print();
+    }
+</script>
+
+</body>
+</html>
