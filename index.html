@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Печать наклеек</title>
+    <title>Печать этикеток</title>
     <link rel="icon" href="https://textetica.ru/wp-content/uploads/2025/01/textetica-divider.png" type="image/x-icon">
     <style>
         body {
@@ -125,6 +125,35 @@
                 margin: 0;
                 size: 10cm 7cm;
             }
+            .print-date {
+    position: absolute;
+    bottom: 5px;
+    right: 10px;
+    font-size: 12px;
+    font-weight: normal;
+    font-style: normal;
+    font-family: Arial, sans-serif;
+}
+
+
+.sticker {
+    width: 10cm;
+    height: 7cm;
+    margin: 0;
+    padding: 0;
+    text-align: center;
+    font-family: "Times New Roman", Times, serif;
+    font-style: italic;
+    font-weight: bold;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    flex-direction: column;
+    page-break-after: avoid;
+    position: relative; /* добавлено */
+}
+
+
         }
     </style>
 </head>
@@ -162,7 +191,7 @@
         </div>
 
         <div>
-            <label for="quantity">Количество наклеек:</label>
+            <label for="quantity">Количество этикеток:</label>
             <input type="number" id="quantity" name="quantity" min="1" required>
         </div>
     </div>
@@ -174,46 +203,69 @@
 
 <script>
     function generateStickers() {
-        const name = document.getElementById("name").value;
-        const phone = document.getElementById("phone").value;
-        const inn = document.getElementById("inn").value;
-        const city = document.getElementById("city").value;
-        const company = document.getElementById("company").value;
+        const name = document.getElementById("name").value.trim();
+        const phone = document.getElementById("phone").value.trim();
+        const inn = document.getElementById("inn").value.trim();
+        const city = document.getElementById("city").value.trim();
+        const company = document.getElementById("company").value.trim();
         const quantity = parseInt(document.getElementById("quantity").value);
-
+    
         if (!quantity || quantity <= 0) {
-            alert("Пожалуйста, корректно укажите количество наклеек.");
+            alert("Пожалуйста, корректно укажите количество этикеток.");
             return;
         }
-
-        const stickersContainer = document.getElementById("printArea");
-        stickersContainer.innerHTML = '';
-
+    
+        const dateNow = new Date().toLocaleDateString('ru-RU');
+    
+        let stickersHTML = '<!DOCTYPE html><html lang="ru"><head><meta charset="UTF-8"><title>Печать этикеток</title>' +
+            '<style>' +
+            '@page { margin: 0; size: 10cm 7cm; }' +
+            'body { margin: 0; padding: 0; }' +
+            '.sticker {' +
+                'width: 10cm;' +
+                'height: 7cm;' +
+                'text-align: center;' +
+                'font-family: "Times New Roman", Times, serif;' +
+                'font-style: italic;' +
+                'font-weight: bold;' +
+                'display: flex;' +
+                'justify-content: center;' +
+                'align-items: center;' +
+                'flex-direction: column;' +
+                'position: relative;' +
+                'overflow: hidden;' +
+            '}' +
+            '.line-35 { font-size: 35px; }' +
+            '.print-date { position: absolute; bottom: 5px; right: 10px; font-size: 12px; }' +
+            '</style>' +
+            '</head><body>';
+    
         for (let i = 1; i <= quantity; i++) {
-            const sticker = document.createElement("div");
-            sticker.classList.add("sticker");
-
-            sticker.innerHTML = `
-                <div class="line-35">${name}</div>
-                <div class="line-35">тел. ${phone}</div>
-                <div class="line-35">ИНН ${inn}</div>
-                <div class="line-35">г. ${city}</div>
-                <div class="line-35">${company}</div>
-                <div class="line-35">${i}/${quantity}</div>
-            `;
-
-            stickersContainer.appendChild(sticker);
-
-            if (i < quantity && quantity > 1) {
-                const pageBreak = document.createElement("div");
-                pageBreak.style.pageBreakAfter = "always";
-                stickersContainer.appendChild(pageBreak);
+            stickersHTML += '<div class="sticker">';
+            if (name) stickersHTML += `<div class="line-35">${name}</div>`;
+            if (phone) stickersHTML += `<div class="line-35">тел. ${phone}</div>`;
+            if (inn) stickersHTML += `<div class="line-35">ИНН ${inn}</div>`;
+            if (city) stickersHTML += `<div class="line-35">г. ${city}</div>`;
+            if (company) stickersHTML += `<div class="line-35">${company}</div>`;
+            stickersHTML += `<div class="line-35">${i}/${quantity}</div>`;
+            stickersHTML += `<div class="print-date">${dateNow}</div>`;
+            stickersHTML += '</div>';
+    
+            // Добавляем принудительный разрыв страницы, если наклейек больше одной.
+            if (i < quantity) {
+                stickersHTML += '<div style="page-break-after: always;"></div>';
             }
         }
-
-        window.print();
+        stickersHTML += '</body></html>';
+    
+        const printWindow = window.open('', '', 'width=800,height=600');
+        printWindow.document.write(stickersHTML);
+        printWindow.document.close();
+        printWindow.focus();
+        printWindow.print();
+        printWindow.close();
     }
-</script>
+    </script>
 
 </body>
 </html>
