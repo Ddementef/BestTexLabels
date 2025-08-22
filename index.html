@@ -28,7 +28,7 @@
             align-items: center;
             width: 100%;
             max-width: 500px;
-         }
+        }
 
         .logo {
             text-align: center;
@@ -37,8 +37,19 @@
         .form-grid {
             display: grid;
             grid-template-columns: 1fr 1fr;
-            column-gap: 15px; /* Увеличил горизонтальные зазоры между столбцами */
+            column-gap: 15px;
             width: 100%;
+        }
+
+        .mode-toggle {
+            margin: 10px 0;
+            display: flex;
+            justify-content: center;
+        }
+
+        .mode-toggle label {
+            margin: 0 10px;
+            font-size: 16px;
         }
 
         label {
@@ -49,8 +60,8 @@
 
         input[type="text"],
         input[type="number"] {
-            width: calc(100% - 15px); /* Поля ввода по ширине с учётом отступов справа */
-            padding: 8px; /* Отступы внутри полей */
+            width: calc(100% - 15px);
+            padding: 8px;
             margin-bottom: 10px;
             border: 1px solid #ccc;
             border-radius: 4px;
@@ -58,19 +69,18 @@
         }
 
         button {
-    background-color: #4caf50;
-    color: white;
-    padding: 12px 20px;
-    border: none;
-    border-radius: 10px;
-    font-size: 18px;
-    cursor: pointer;
-    transition: background-color 0.3s ease;
-    width: 100%;
-    max-width: 495px;
-    margin: 0 auto; /* Центрирование кнопки */
-}
-
+            background-color: #4caf50;
+            color: white;
+            padding: 12px 20px;
+            border: none;
+            border-radius: 10px;
+            font-size: 18px;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+            width: 100%;
+            max-width: 495px;
+            margin: 0 auto;
+        }
 
         button:hover {
             background-color: #45a049;
@@ -90,10 +100,15 @@
             align-items: center;
             flex-direction: column;
             page-break-after: avoid;
+            position: relative;
         }
 
         .line-35 {
             font-size: 35px;
+        }
+
+        .line-100 {
+            font-size: 100px;
         }
 
         #printArea {
@@ -125,35 +140,16 @@
                 margin: 0;
                 size: 10cm 7cm;
             }
+
             .print-date {
-    position: absolute;
-    bottom: 5px;
-    right: 10px;
-    font-size: 12px;
-    font-weight: normal;
-    font-style: normal;
-    font-family: Arial, sans-serif;
-}
-
-
-.sticker {
-    width: 10cm;
-    height: 7cm;
-    margin: 0;
-    padding: 0;
-    text-align: center;
-    font-family: "Times New Roman", Times, serif;
-    font-style: italic;
-    font-weight: bold;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    flex-direction: column;
-    page-break-after: avoid;
-    position: relative; /* добавлено */
-}
-
-
+                position: absolute;
+                bottom: 5px;
+                right: 10px;
+                font-size: 12px;
+                font-weight: normal;
+                font-style: normal;
+                font-family: Arial, sans-serif;
+            }
         }
     </style>
 </head>
@@ -164,7 +160,12 @@
         <img src="https://besttexmsk.ru/wp-content/webp-express/webp-images/uploads/2022/12/logotype.jpg.webp" alt="Логотип" width="200">
     </div>
 
-    <div class="form-grid">
+    <div class="mode-toggle">
+        <label><input type="radio" name="mode" value="full" checked onclick="toggleMode()"> Полный режим</label>
+        <label><input type="radio" name="mode" value="simple" onclick="toggleMode()"> Нумерация</label>
+    </div>
+
+    <div class="form-grid" id="formGrid">
         <div>
             <label for="name">Название:</label>
             <input type="text" id="name" name="name" required>
@@ -202,21 +203,43 @@
 <div id="printArea"></div>
 
 <script>
+    function toggleMode() {
+        const mode = document.querySelector('input[name="mode"]:checked').value;
+        const formGrid = document.getElementById('formGrid');
+        const inputs = formGrid.querySelectorAll('input:not(#quantity)');
+        const labels = formGrid.querySelectorAll('label:not([for="quantity"])');
+
+        if (mode === 'simple') {
+            inputs.forEach(input => input.parentElement.style.display = 'none');
+            labels.forEach(label => label.style.display = 'none');
+            formGrid.style.gridTemplateColumns = '1fr';
+        } else {
+            inputs.forEach(input => input.parentElement.style.display = 'block');
+            labels.forEach(label => label.style.display = 'block');
+            formGrid.style.gridTemplateColumns = '1fr 1fr';
+        }
+    }
+
     function generateStickers() {
-        const name = document.getElementById("name").value.trim();
-        const phone = document.getElementById("phone").value.trim();
-        const inn = document.getElementById("inn").value.trim();
-        const city = document.getElementById("city").value.trim();
-        const company = document.getElementById("company").value.trim();
+        const mode = document.querySelector('input[name="mode"]:checked').value;
         const quantity = parseInt(document.getElementById("quantity").value);
-    
+        let name, phone, inn, city, company;
+
+        if (mode === 'full') {
+            name = document.getElementById("name").value.trim();
+            phone = document.getElementById("phone").value.trim();
+            inn = document.getElementById("inn").value.trim();
+            city = document.getElementById("city").value.trim();
+            company = document.getElementById("company").value.trim();
+        }
+
         if (!quantity || quantity <= 0) {
             alert("Пожалуйста, корректно укажите количество этикеток.");
             return;
         }
-    
+
         const dateNow = new Date().toLocaleDateString('ru-RU');
-    
+
         let stickersHTML = '<!DOCTYPE html><html lang="ru"><head><meta charset="UTF-8"><title>Печать этикеток</title>' +
             '<style>' +
             '@page { margin: 0; size: 10cm 7cm; }' +
@@ -236,28 +259,32 @@
                 'overflow: hidden;' +
             '}' +
             '.line-35 { font-size: 35px; }' +
-            '.print-date { position: absolute; bottom: 5px; right: 10px; font-size: 12px; }' +
+            '.line-100 { font-size: 100px; }' +
+            '.print-date { position: absolute; bottom: 5px; right: 10px; font-size: 12px; font-weight: normal; font-style: normal; font-family: Arial, sans-serif; }' +
             '</style>' +
             '</head><body>';
-    
+
         for (let i = 1; i <= quantity; i++) {
             stickersHTML += '<div class="sticker">';
-            if (name) stickersHTML += `<div class="line-35">${name}</div>`;
-            if (phone) stickersHTML += `<div class="line-35">тел. ${phone}</div>`;
-            if (inn) stickersHTML += `<div class="line-35">ИНН ${inn}</div>`;
-            if (city) stickersHTML += `<div class="line-35">г. ${city}</div>`;
-            if (company) stickersHTML += `<div class="line-35">${company}</div>`;
-            stickersHTML += `<div class="line-35">${i}/${quantity}</div>`;
+            if (mode === 'full') {
+                if (name) stickersHTML += `<div class="line-35">${name}</div>`;
+                if (phone) stickersHTML += `<div class="line-35">тел. ${phone}</div>`;
+                if (inn) stickersHTML += `<div class="line-35">ИНН ${inn}</div>`;
+                if (city) stickersHTML += `<div class="line-35">г. ${city}</div>`;
+                if (company) stickersHTML += `<div class="line-35">${company}</div>`;
+                stickersHTML += `<div class="line-35">${i}/${quantity}</div>`;
+            } else {
+                stickersHTML += `<div class="line-100">${i}/${quantity}</div>`;
+            }
             stickersHTML += `<div class="print-date">${dateNow}</div>`;
             stickersHTML += '</div>';
-    
-            // Добавляем принудительный разрыв страницы, если наклейек больше одной.
+
             if (i < quantity) {
                 stickersHTML += '<div style="page-break-after: always;"></div>';
             }
         }
         stickersHTML += '</body></html>';
-    
+
         const printWindow = window.open('', '', 'width=800,height=600');
         printWindow.document.write(stickersHTML);
         printWindow.document.close();
@@ -265,7 +292,10 @@
         printWindow.print();
         printWindow.close();
     }
-    </script>
+
+    // Initialize form based on default mode
+    toggleMode();
+</script>
 
 </body>
 </html>
